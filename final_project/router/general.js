@@ -89,32 +89,21 @@ public_users.get('/author/:author', function (req, res) {
 
 // Task 4: Get book details based on title (using Promise callbacks)
 public_users.get('/title/:title', function (req, res) {
-  const titleParam = req.params.title.toLowerCase();
+  const titleParam = decodeURIComponent(req.params.title).toLowerCase();
+  const matchingBooks = {};
 
-  new Promise((resolve, reject) => {
-    const matchingBooks = [];
-    const keys = Object.keys(books);
-
-    keys.forEach((isbn) => {
-      const book = books[isbn];
-      if (
-        book.title.toLowerCase() === titleParam ||
-        book.title.toLowerCase().includes(titleParam)
-      ) {
-        matchingBooks.push(book);
-      }
-    });
-
-    if (matchingBooks.length > 0) {
-      resolve(matchingBooks);
-    } else {
-      reject(new Error('No books found with this title.'));
+  Object.keys(books).forEach((isbn) => {
+    const book = books[isbn];
+    if (book.title.toLowerCase().includes(titleParam)) {
+      matchingBooks[isbn] = book;
     }
-  })
-    .then((matching) => res.status(200).json(matching))
-    .catch((err) => res.status(404).json({ message: err.message }));
-});
+  });
 
+  if (Object.keys(matchingBooks).length > 0) {
+    return res.status(200).json(matchingBooks);
+  }
+  return res.status(404).json({ message: 'No books found with this title.' });
+});
 // Task 5: Get book review based on ISBN
 public_users.get('/review/:isbn', function (req, res) {
   const isbn = req.params.isbn;
